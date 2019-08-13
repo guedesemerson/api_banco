@@ -1,23 +1,23 @@
 # coding: utf-8
 from flask import  jsonify, abort
-from flask_api import  api
-from flask_api.product.models import transacao, modelo_transacao
+from flask_api import  api, ns
+from flask_api.product.models import transacao, modelo_transacao, modelo_Filtro
 from flask_restplus import Resource
 from bson.objectid import ObjectId
 
 
-@api.route('/read', methods=['GET'])
-class ProductView(Resource):
+@ns.route('/')
+class ListProducts(Resource):
 
-
-    @api.response(200, 'Success',modelo_transacao)
-    @api.response(400, 'Validation Error')
+    @ns.response(200, 'Success',modelo_transacao)
+    @ns.response(400, 'Bad request')
     def get(self):
         lista_transacoes = []
         for row in transacao.find():
             lista_transacoes.append({"Data":row['Data'],
-                                      "Hora":row['Hora'],
+                                     "Hora": row['Hora'],
                                       "_id:":str(ObjectId(row['_id'])),
+                                      "Valor":row['Valor'],
                                       "ContaInicial":row['ContaInicial'],
                                       "ContaFinal":row['ContaFinal']})
 
@@ -28,28 +28,29 @@ class ProductView(Resource):
         else:
             return jsonify({'result': lista_transacoes})
 
-@api.route('/create', methods=['POST'])
-class ProductCreate(Resource):
-
-    @api.response(200, 'Success', modelo_transacao)
-    @api.response(400, 'Validation Error')
-    @api.expect(modelo_transacao)
-
+    @ns.expect(modelo_transacao)
     def post(self):
 
         transacao.insert(api.payload)
         return 'Dado inserido com sucesso'
 
-@api.route('/delete/<id>', methods=['DELETE'])
-class ProductDelete(Resource):
+@ns.route('/<_id>')
+class Product(Resource):
+    @ns.response(200, 'Success', modelo_transacao)
+    @ns.response(400, 'Bad request')
 
-    @api.response(200, 'Success', modelo_transacao)
-    @api.response(400, 'Validation Error')
+    def put(self, _id):
+        result = transacao.find_one({'_id': ObjectId(_id)})
+        if result:
+            return jsonify(result)
+
+        else:
+            return abort(400,'Erro na busca dos objetos/Sem objetos')
 
 
-    def delete(self, id):
+    def delete(self, _id):
 
-        result = transacao.find_one({'_id': ObjectId(id)})
+        result = transacao.find_one({'_id': ObjectId(_id)})
 
         if result:
             transacao.remove(result)
@@ -57,6 +58,33 @@ class ProductDelete(Resource):
 
         else:
             return abort(400,'Erro na busca dos objetos/Sem objetos')
+
+
+
+
+
+@ns.route('/filter')
+class TransactionFilter(Resource):
+    @ns.expect(modelo_Filtro)
+    def post(self):
+
+        lista_transacoes = []
+        for row in transacao.find(api.payload):
+            if row:
+                lista_transacoes.append({"Data": row['Data'],
+                                         "Hora": row['Hora'],
+                                         "_id:": str(ObjectId(row['_id'])),
+                                         "Valor": row['Valor'],
+                                         "ContaInicial": row['ContaInicial'],
+                                         "ContaFinal": row['ContaFinal']})
+
+        if lista_transacoes == []:
+            return 'Transações não encontradas com o filtro especificado'
+
+
+        else:
+            return jsonify({'Result': lista_transacoes})
+
 
 
 
