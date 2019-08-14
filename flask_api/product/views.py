@@ -43,10 +43,16 @@ class Transaction(Resource):
     @ns.doc('Buscando transações via post')
     @ns.response(200, 'Success', modelo_transacao)
     @ns.response(400, 'Bad request')
-    def put(self, _id):
+    @ns.expect(modelo_transacao)
+    def put(self, _id ):
         result = transacao.find_one({'_id': ObjectId(_id)})
+
         if result:
-            return jsonify(result)
+            transacao.update_one({'_id':ObjectId(_id)}, {"$set": api.payload}, upsert=False)
+
+            #return jsonify({'Transação alterada':result})
+            return 'Dados Salvos'
+
 
         else:
             return abort(400,'Erro na busca de transações/Sem transações')
