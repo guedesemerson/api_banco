@@ -1,4 +1,4 @@
-#Desenvolvimento de uma api para requisições de transações bancárias.
+Desenvolvimento de uma api para requisições de transações bancárias.
 Exemplo da aplicação: app-rendafixa.herokuapp.com
 
 Versão do Projeto 1.0
