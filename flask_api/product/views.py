@@ -13,7 +13,9 @@ class ListTransaction(Resource):
     @ns.response(200, 'Success',modelo_transacao)
     @ns.response(400, 'Bad request')
     def get(self):
-
+        """
+            Busca a lista de transações
+        """
         lista_transacoes = []
         for row in transacao.find():
             lista_transacoes.append({"Data":row['Data'],
@@ -33,7 +35,9 @@ class ListTransaction(Resource):
     @ns.doc('Inserindo novas transaçoes')
     @ns.expect(modelo_transacao, validate=True)
     def post(self):
-
+        """
+            Insere uma nova transação
+        """
         transacao.insert(api.payload)
         return 'Transação feita com sucesso'
 
@@ -45,7 +49,9 @@ class Transaction(Resource):
     @ns.response(400, 'Bad request')
     @ns.expect(modelo_transacao)
     def put(self, _id ):
-
+        """
+            Atualiza uma transação
+        """
         try :
             result = transacao.find_one({'_id': ObjectId(_id)})
 
@@ -58,15 +64,18 @@ class Transaction(Resource):
 
     @ns.doc('Deletando transação')
     def delete(self, _id):
+        """
+            Deleta uma transação específica
+        """
+        try:
+            result = transacao.find_one({'_id': ObjectId(_id)})
 
-        result = transacao.find_one({'_id': ObjectId(_id)})
+            if result:
+                transacao.remove(result)
+                return 'Transação deletada'
 
-        if result:
-            transacao.remove(result)
-            return 'Transação deletada com sucesso'
-
-        else:
-            return abort(400,'Erro na remoção a transação/Transação Inexistente')
+        except:
+            return abort(400,'Erro na remoção da transação/Transação Inexistente')
 
 
 
@@ -79,7 +88,9 @@ class TransactionFilter(Resource):
     @ns.response(400, 'Bad request')
     @ns.expect(modelo_Filtro, validate=True)
     def post(self):
-
+        """
+            Busca as transações de acordo com o filtro
+        """
         lista_transacoes = []
         for row in transacao.find({'$and': [{'Valor':{'$gte':api.payload['Valor']}, 'Hora':{'$gte':api.payload['Hora']}, 'Data':{'$gte':api.payload['Data']} }]}):
             if row:
