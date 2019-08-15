@@ -15,7 +15,8 @@ Api desenvolvida: Utilizei:
 ATENÇÃO
 
 Iniciando o serviço
-Python run.py
+
+-Python run.py
 
 Documentação
 
