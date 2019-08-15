@@ -4,7 +4,7 @@ from flask_api import  api, ns
 from flask_api.product.models import transacao, modelo_transacao, modelo_Filtro
 from flask_restplus import Resource
 from bson.objectid import ObjectId
-import datetime
+
 
 
 @ns.route('/')
@@ -31,7 +31,7 @@ class ListTransaction(Resource):
             return jsonify({'Transações': lista_transacoes})
 
     @ns.doc('Inserindo novas transaçoes')
-    @ns.expect(modelo_transacao)
+    @ns.expect(modelo_transacao, validate=True)
     def post(self):
 
         transacao.insert(api.payload)
@@ -45,17 +45,16 @@ class Transaction(Resource):
     @ns.response(400, 'Bad request')
     @ns.expect(modelo_transacao)
     def put(self, _id ):
-        result = transacao.find_one({'_id': ObjectId(_id)})
 
-        if result:
-            transacao.update_one({'_id':ObjectId(_id)}, {"$set": api.payload}, upsert=False)
+        try :
+            result = transacao.find_one({'_id': ObjectId(_id)})
 
-            #return jsonify({'Transação alterada':result})
-            return 'Dados Salvos'
+            if result:
+                transacao.update_one({'_id':ObjectId(_id)}, {"$set": api.payload}, upsert=False)
+                return 'Dado(s) atualizado(s) com sucesso!'
 
-
-        else:
-            return abort(400,'Erro na busca de transações/Sem transações')
+        except:
+            return 'Erro na atualização de transação/Sem transações'
 
     @ns.doc('Deletando transação')
     def delete(self, _id):
@@ -78,7 +77,7 @@ class TransactionFilter(Resource):
     @ns.doc('Filtrando transações')
     @ns.response(200, 'Success', modelo_transacao)
     @ns.response(400, 'Bad request')
-    @ns.expect(modelo_Filtro)
+    @ns.expect(modelo_Filtro, validate=True)
     def post(self):
 
         lista_transacoes = []
